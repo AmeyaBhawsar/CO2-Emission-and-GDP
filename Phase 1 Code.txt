@@ -1,0 +1,52 @@
+import dash
+import dash_core_components as dcc
+import dash_html_components as html
+from dash.dependencies import Input, Output
+import plotly.express as px
+import plotly.graph_objects as go
+import pandas as pd
+
+df = pd.read_csv("C:/Users/admin/Downloads/co2-emissions-and-gdp rename wala.csv")
+
+app = dash.Dash(__name__)
+
+app.layout = html.Div([
+    dcc.Graph(id='graph-with-slider'),
+    dcc.Slider(
+        id='year-slider',
+        min=df['Year'].min(),
+        max=df['Year'].max(),
+        value=df['Year'].min(),
+        marks={str(Year): str(Year) for Year in df['Year'].unique()},
+        step=None
+    )
+])
+
+
+@app.callback(
+    Output('graph-with-slider', 'figure'),
+    Input('year-slider', 'value'))
+def update_figure(selected_year):
+    filtered_df = df[df.Year == selected_year]
+
+    # Plotly Express
+    fig = px.choropleth(filtered_df, locations="Code",
+                    color="ABC Corp - Annual CO2 emissions per capita", # ABC Annual CO2 emissions per capita is a column name in sheet
+                    hover_name="Country",# column to add to hover informatio
+                    hover_data=["ABC Corp - Annual CO2 emissions per capita","XYZ Corp - Annual CO2 emissions per capita 2%","SAM1 Corp - Annual CO2 emissions per capita 2%"
+                                ,"SAM2 Corp - Annual CO2 emissions per capita 2%","SAM3 Corp - Annual CO2 emissions per capita 2%","ABC Corp Revenue 1% of GDP",
+                                "XYZ Corp Revenue 5% of GDP","SAM1 Corp Revenue 2% of GDP", "SAM2 Corp Revenue 7% of GDP","SAM3 Corp Revenue 3% of GDP"],
+                    color_continuous_scale=px.colors.sequential.Plasma)
+
+    fig.update_layout(
+        
+        height=500, 
+        margin={"r":1,"t":0,"l":0,"b":3},
+    )
+
+    return fig
+    
+
+
+if __name__ == '__main__':
+    app.run_server(debug=True)
